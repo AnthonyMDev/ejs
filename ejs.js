@@ -144,7 +144,7 @@ function rethrow(err, str, filename, lineno){
     + lineno + '\n'
     + context + '\n\n'
     + err.message;
-
+  
   throw err;
 }
 
@@ -175,7 +175,7 @@ var parse = exports.parse = function(str, options){
     var stri = str[i];
     if (str.slice(i, open.length + i) == open) {
       i += open.length
-
+  
       var prefix, postfix, line = (compileDebug ? '__stack.lineno=' : '') + lineno;
       switch (str[i]) {
         case '=':
@@ -193,13 +193,8 @@ var parse = exports.parse = function(str, options){
           postfix = "; buf.push('";
       }
 
-      var end = str.indexOf(close, i);
-
-      if (end < 0){
-        throw new Error('Could not find matching close tag "' + close + '".');
-      }
-
-      var js = str.substring(i, end)
+      var end = str.indexOf(close, i)
+        , js = str.substring(i, end)
         , start = i
         , include = null
         , n = 0;
@@ -209,19 +204,19 @@ var parse = exports.parse = function(str, options){
         consumeEOL = true;
       }
 
-      if (0 == js.trim().indexOf('include')) {
+       if (0 == js.trim().indexOf('include')) {
         var name = js.trim().slice(7).trim();
         if (!filename) throw new Error('filename option is required for includes');
         // If it is not path, but variable name (Added)
         if(options[name])
-            var path = resolveInclude(options[name], filename);
+             var path = resolveInclude(options[name], filename);
         else
-            var path = resolveInclude(name, filename);
+             var path = resolveInclude(name, filename);
         include = read(path, 'utf8');
         include = exports.parse(include, options); // Added transfer whole options
-        buf. += "' + (function(){" + include + "})() + '";
+        buf += "' + (function(){" + include + "})() + '";
         js = '';
-    }
+      }
 
       while (~(n = js.indexOf("\n", n))) n++, lineno++;
       if (js.substr(0, 1) == ':') js = filtered(js);
@@ -268,14 +263,14 @@ var parse = exports.parse = function(str, options){
 var compile = exports.compile = function(str, options){
   options = options || {};
   var escape = options.escape || utils.escape;
-
+  
   var input = JSON.stringify(str)
     , compileDebug = options.compileDebug !== false
     , client = options.client
     , filename = options.filename
         ? JSON.stringify(options.filename)
         : 'undefined';
-
+  
   if (compileDebug) {
     // Adds the fancy stack trace meta info
     str = [
@@ -290,7 +285,7 @@ var compile = exports.compile = function(str, options){
   } else {
     str = exports.parse(str, options);
   }
-
+  
   if (options.debug) console.log(str);
   if (client) str = 'escape = escape || ' + escape.toString() + ';\n' + str;
 
@@ -642,7 +637,7 @@ require.register("utils.js", function(module, exports, require){
 
 exports.escape = function(html){
   return String(html)
-    .replace(/&/g, '&amp;')
+    .replace(/&(?!#?[a-zA-Z0-9]+;)/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/'/g, '&#39;')
